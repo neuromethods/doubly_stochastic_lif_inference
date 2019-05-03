@@ -5,7 +5,8 @@ from util_funcs import transform_function
 from scipy.optimize import minimize, minimize_scalar
 from multiprocessing import cpu_count, pool
 from functools import partial
-
+import warnings
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 def compute_mllk_at_point(model_variables, fixed_args):
     """ Computes the likelihood of the LIF population model for a given set
     of parameters under the assumption that the common input is an Ornstein
@@ -33,8 +34,8 @@ def compute_mllk_at_point(model_variables, fixed_args):
     nu_ou, var_ou = compute_trans_moments(delta_ts, x_range, tau_ou, x_bar_ou,
                                           zeta_ou)
     upper_edge, lower_edge = edge_correction(x_range, dx, nu_ou, var_ou)
-    alpha, c = compute_forward_messages_oup(fixed_args, nu_ou, var_ou,
-                                            upper_edge, lower_edge, pop_params)
+    alpha, c = compute_forward_messages(fixed_args, nu_ou, var_ou,
+                                        upper_edge, lower_edge, pop_params)
     try:
         mllk = np.sum(np.log(c))
     except RuntimeWarning:
@@ -82,6 +83,7 @@ def parallel_simplex_mu_fit(neuron_idx, model_variables,
                                 neuron_idx=neuron_idx,
                                 model_variables=model_variables,
                                 fixed_args=fixed_args)
+
     opt_res = minimize_scalar(optimization_func,
                               bracket=[-6.5, -4.], bounds=[-8., -3.],
                               method='brent',
@@ -422,17 +424,16 @@ def compute_neg_mllk_simplex(variables, model_variables, fixed_args):
     nu_ou, var_ou = compute_trans_moments(delta_ts, x_range, tau_ou, x_bar_ou,
                                           zeta_ou)
     upper_edge, lower_edge = edge_correction(x_range, dx, nu_ou, var_ou)
-    alpha, c = compute_forward_messages_oup(fixed_args, nu_ou, var_ou,
-                                            upper_edge, lower_edge, pop_params)
+    alpha, c = compute_forward_messages(fixed_args, nu_ou, var_ou,
+                                        upper_edge, lower_edge, pop_params)
     mllk = np.sum(np.log(c))
     return -mllk
 
-def simplex_fit_single_unit(model_variables, fixed_args, initial_simplex=None):
+def simplex_fit_single_neuron(sigma, fixed_args, initial_simplex=None):
     """ Optimizes a single neuron recording with simplex method.
 
-    :param model_variables: list
-        Containing all the variables of the model (process and population
-        parameters).
+    :param sigma: float
+        White noise amplitude of neuron.
     :param fixed_args: list
         All fixed parameters of the optimization procedure.
     :param initial_simplex: np.array or None
@@ -442,7 +443,9 @@ def simplex_fit_single_unit(model_variables, fixed_args, initial_simplex=None):
         Optimal model variables (process and population) and the value of
         marginal log likelihood.
     """
-
+    proc_params = 250., 0., 1.
+    pop_params = np.ones([1]), np.zeros([1]), sigma * np.ones([1])
+    model_variables = [proc_params, pop_params]
     init_variables = np.array([10e-3, -6.5, .5])
     if initial_simplex is None:
         initial_simplex = np.array([[.1e3, -6.5, .5],
@@ -506,8 +509,8 @@ def keep_pop_params_in_range(pop_params):
     return pop_params
 
 @numba.njit
-def compute_forward_messages_oup(fixed_args, nu_ou, var_ou, upper_edge,
-                                 lower_edge, pop_params):
+def compute_forward_messages(fixed_args, nu_ou, var_ou, upper_edge,
+                             lower_edge, pop_params):
     """ Computes the forward messages (filtering).
 
     :param fixed_args: list
@@ -561,6 +564,30 @@ def compute_forward_messages_oup(fixed_args, nu_ou, var_ou, upper_edge,
 
     return alpha, c
 
+def get_marginals(model_parameters, fixed_args):
+    """ Gets marginals for given model parameters and data.
+
+    :param model_parameters: list
+        Contains model parameters.
+    :param fixed_args: list
+        All fixed parameters of the optimization procedure.
+    :return: np.array
+        Posterior over common input trace.
+    """
+
+    proc_params, pop_params = model_parameters
+    tau_ou, x_bar_ou, zeta_ou= proc_params
+    FPT_density, FPT_times, ISIs, ISI_idx, neuron_idx, valid_ISIs, delta_ts, \
+    x_range, dx, px0, mu_ranges, sort_error = fixed_args
+    nu_ou, var_ou = compute_trans_moments(delta_ts, x_range, tau_ou, x_bar_ou,
+                                        zeta_ou)
+    upper_edge, lower_edge = edge_correction(x_range, dx, nu_ou, var_ou)
+    alpha, c = compute_forward_messages(fixed_args, nu_ou, var_ou, upper_edge,
+                             lower_edge, pop_params)
+    p_x, beta = compute_marginals(fixed_args, pop_params,
+                                  proc_params, alpha, c)
+    return p_x
+
 def compute_marginals(fixed_args, pop_params, proc_params, alpha, c):
     """ Computes the marginals of the common process x(t).
 
@@ -583,14 +610,14 @@ def compute_marginals(fixed_args, pop_params, proc_params, alpha, c):
     nu_ou, var_ou = compute_trans_moments(delta_ts, x_range, tau_ou, x_bar_ou,
                                           zeta_ou)
     upper_edge, lower_edge = edge_correction(x_range, dx, nu_ou, var_ou)
-    beta = compute_backward_messages_oup(fixed_args, nu_ou, var_ou, upper_edge,
-                                         lower_edge, pop_params, c)
-    p_mu = alpha*beta
-    return p_mu, beta
+    beta = compute_backward_messages(fixed_args, nu_ou, var_ou, upper_edge,
+                                     lower_edge, pop_params, c)
+    p_x = alpha*beta
+    return p_x, beta
 
 @numba.njit
-def compute_backward_messages_oup(fixed_args, nu_ou, var_ou, upper_edge,
-                                  lower_edge, pop_params, c):
+def compute_backward_messages(fixed_args, nu_ou, var_ou, upper_edge,
+                              lower_edge, pop_params, c):
     """ Computes the backwards meassages (smoothing).
 
     :param fixed_args: list
