@@ -2,7 +2,6 @@ import numpy as np
 import numba
 from scipy.special import erf
 from util_funcs import transform_function
-import multiprocessing
 from scipy.optimize import minimize, minimize_scalar
 from multiprocessing import cpu_count, pool
 from functools import partial
@@ -10,7 +9,7 @@ from functools import partial
 def compute_mllk_at_point(model_variables, fixed_args):
     """ Computes the likelihood of the LIF population model for a given set
     of parameters under the assumption that the common input is an Ornstein
-    Uhlenbeck process.
+    Uhlenbeck process (OUP).
 
     :param model_variables: list
         Contains model specific parameters. First entry
@@ -24,7 +23,7 @@ def compute_mllk_at_point(model_variables, fixed_args):
         optimisation.
     :return: list
         Returns the marginal log likelihood, the summands for each data
-        point, and the forward messages (for later computaion of marginals).
+        point, and the forward messages (for later computation of marginals).
     """
     proc_params, pop_params = model_variables
 
@@ -203,9 +202,13 @@ def parallel_simplex_C_fit(neuron_idx, C_init, model_variables,
         The index of the neuron.
     :param C_init: numpy.array
         Initial values of couplings.
-    :param model_variables:
-    :param fixed_args:
-    :return:
+    :param model_variables: list
+        Containing all the variables of the model (process and population
+        parameters).
+    :param fixed_args: list
+        All fixed parameters of the optimization procedure.
+    :return: float
+        Optimal coupling.
     """
     optimization_func = partial(simplex_C_fit_wrapper_mllk,
                                 neuron_idx=neuron_idx,
@@ -256,7 +259,8 @@ def optimize_population(N, sigmas, fixed_args, tau_init=250., parallel=True):
         Whether one wants to parallelize the procedure (approximate, but much
         faster) or do updates sequentially (slow, but less approximative).
         Default=True
-    :return:
+    :return: list
+        Optimal model variables.
     """
     proc_params = tau_init, 0., 1.
     pop_params = np.zeros(N), -6.5*np.ones(N), sigmas
