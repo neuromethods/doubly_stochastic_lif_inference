@@ -103,7 +103,6 @@ def simplex_C_all_fit_wrapper_mllk(C_all, model_variables, fixed_args):
     :return: float
         Negative marginal log likelihood
     """
-    print(C_all)
     if C_all < 0:
         return np.inf
     proc_params, pop_params = model_variables
@@ -235,7 +234,6 @@ def simplex_gamma_fit_wrapper_mllk(gamma, model_variables, fixed_args):
     :return: float
         Negative marginal log likelihood.
     """
-    print(gamma)
     if gamma <= 0:
         return np.inf
     proc_params, pop_params = model_variables
@@ -273,7 +271,6 @@ def optimize_population(N, sigmas, fixed_args, gamma_init=1. / 250.,
     if parallel:
         #num_cpu = 10
         num_cpu = np.amin([N, int(np.floor(.9*cpu_count()))])
-        print(num_cpu)
         p = pool.Pool(num_cpu)
         mu_results = p.map(partial(parallel_simplex_mu_fit,
                             model_variables=model_variables,
@@ -353,7 +350,6 @@ def optimize_population(N, sigmas, fixed_args, gamma_init=1. / 250.,
         model_variables = proc_params, pop_params
 
         convergence = -(mllk_cur - mllk_old)/mllk_cur
-        print(convergence)
         converged = convergence < 1e-3
 
     print('Optimize mu and C')
