@@ -141,16 +141,14 @@ def generate_pop_spikes(proc_params, pop_params, dtsim, T, return_V=False):
     Cs, mu_bars, sigmas = pop_params
     N = len(Cs)
 
-    if dynamics == 'OUP':
+    if dynamics == 'oup':
         tau_ou, x_bar_ou, zeta_ou = proc_params[1], proc_params[2], \
                                    proc_params[3]
-        x_t = generate_OUP(x_bar_ou, tgrid, dtsim, tau_ou, x_bar_ou, \
-                                               zeta_ou)
-    elif dynamics == 'MJP':
+        x_t = generate_OUP(x_bar_ou, tgrid, dtsim, tau_ou)
+    elif dynamics == 'mjp':
         gamma_jump, x_bar_jump, zeta_jump = proc_params[1], proc_params[2], \
                                      proc_params[3]
-        x_t = generate_MJP(x_bar_jump, tgrid, dtsim, gamma_jump,
-                                  x_bar_jump, zeta_jump)
+        x_t = generate_MJP(x_bar_jump, tgrid, dtsim, gamma_jump)
 
 
     Spikes_pop = []
