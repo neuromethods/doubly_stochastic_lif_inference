@@ -236,6 +236,28 @@ def get_stationary_stats(mu, sigma):
 
     return r_ss_ref, Vmean_ss
 
+def get_random_parameters(N, sigma):
+    """ Samples randomly reasonable parameter values for couplings and offsets.
+
+    :param N: int
+        Number of neurons.
+    :param sigma: float
+        Noise amplitude.
+    :return: tuple
+        Couplings and offsets.
+    """
+    mu_bar_range = np.arange(-6., -3.2, .01)
+    C_range = np.arange(.1, 1., .01)
+    X_MESH, C_MESH = np.meshgrid(mu_bar_range, C_range)
+    valid_mu_bars, valid_Cs, valid_idx, rate_p01, rate_p99 = \
+        get_valid_range(X_MESH, C_MESH, sigma)
+    num_poss_pairs = len(valid_mu_bars)
+    param_idx = np.random.randint(0, num_poss_pairs, N)
+    Cs = valid_Cs[param_idx]
+    mus = valid_mu_bars[param_idx]
+    return Cs, mus
+
+
 def get_valid_range(MU_BAR, C, sigma):
     """ Finds, which (mu,C) pairs result in a process, such that the firing
     rate distribution has a 1% quantile, such that it is not below 1Hz,
@@ -296,7 +318,6 @@ def _pre_calculate_likelihood(sigma, taum=None, gradient=False):
         delta_mu = 1e-2
 
     for imu, mu_tmp in enumerate(mu_range):
-        print(imu)
         mu_array = mu_tmp * np.ones_like(params['t_grid'])
         sigma_array = sigma * np.ones_like(params['t_grid'])
         sp_start = np.array([0])
