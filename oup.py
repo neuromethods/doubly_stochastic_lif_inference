@@ -7,6 +7,7 @@ from multiprocessing import cpu_count, pool
 from functools import partial
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
+
 def compute_mllk_at_point(model_variables, fixed_args):
     """ Computes the likelihood of the LIF population model for a given set
     of parameters under the assumption that the common input is an Ornstein
@@ -103,7 +104,6 @@ def simplex_C_all_fit_wrapper_mllk(C_all, model_variables, fixed_args):
     :return: float
         Negative marginal log likelihood
     """
-    print(C_all)
     if C_all < 0:
         return np.inf
     proc_params, pop_params = model_variables
@@ -236,7 +236,6 @@ def simplex_tau_fit_wrapper_mllk(tau, model_variables, fixed_args):
     :return: float
         Negative marginal log likelihood.
     """
-    print(tau)
     if tau <= 0:
         return np.inf
     proc_params, pop_params = model_variables
@@ -272,7 +271,6 @@ def optimize_population(N, sigmas, fixed_args, tau_init=250., parallel=True):
 
     if parallel:
         num_cpu = np.amin([N, int(np.floor(.9*cpu_count()))])
-        print(num_cpu)
         p = pool.Pool(num_cpu)
         mu_results = p.map(partial(parallel_simplex_mu_fit,
                             model_variables=model_variables,
@@ -352,7 +350,6 @@ def optimize_population(N, sigmas, fixed_args, tau_init=250., parallel=True):
         model_variables = proc_params, pop_params
 
         convergence = -(mllk_cur - mllk_old)/mllk_cur
-        print(convergence)
         converged = convergence < 1e-3
 
     print('Optimize mu and C')
