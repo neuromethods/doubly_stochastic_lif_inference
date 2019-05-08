@@ -1,23 +1,25 @@
-# doubly_stochastic_lif_inference
+# inference_for_doubly_stochastic_IF_models
 
-Library for fitting a population of LIF neurons driven by a one dimensional
-common input. The input consists of white noise and a mean which is stochastic
-itself (hence doubly stochastic).
+Library for fitting a population of doubly-stochastic integrate-and-fire neurons 
+to spike train data. The model accounts for fast independent and slower shared input
+fluctuations that dominate the low-dimensional collective dynamics. In particular, 
+each neuron is driven by an independent Gaussian white noise process, whose mean varies 
+according to a slower stochastic process that is shared among the population. 
+The statistical inference method is described in: __Donner, Opper, Ladenbauer,__ 
+___Inferring the collective dynamics of neuronal populations from single-trial spike trains 
+using mechanistic models___ (under review)
 
 ## Usage
 
-A minimal example is given in the file example.py, including data simulation
-from the generative model, fitting the model, and plotting the results. The main
-function, that should interest the general user, is contained in model_fit.py.
+An example is given in the file example.py, which includes generation of synthetic data
+from the generative model, parameter estimation, and visualization of the results. 
 The code was written with Python 2.7.
 
 ## Remarks
 
-While the code is working well for simulated and invitro data, the model has
-problems with spike sorting errors in invivo recordingds (in particular with
-unreasonably short interspike intervals < 3ms). If problems are encountered,
-removing the spikes at the end of these intervals could help, and also
-adjusting the parameter sorting_error to a plausible value.
+Unreasonably small neuronal interspike intervals (ISIs < 3ms), due to spike sorting errors 
+from in-vivo recordings for example, may cause problems. In this case we recommend to remove 
+very small ISIs and/or set the parameter sorting_error to a larger value.
 
 ## Required libraries
 
@@ -27,24 +29,4 @@ warnings.
 ## Authorship and Contact
 
 The code was developed by Christian Donner and Josef Ladenbauer.
-For questions contact christian.research(at)mailbox.org.
-
-## License
-
-Copyright (C) 2019, Christian Donner
-
-This file is part of doubly_stochastic_lif_inference.
-
-doubly_stochastic_lif_inference is free software: you can redistribute it and/or
-modify it under the terms of the GNU General Public License as published by the
-Free Software Foundation, either version 3 of the License, or (at your option)
-any later version.
-
-doubly_stochastic_lif_inference is distributed in the hope that it will be
-useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
-License for more details.
-
-You should have received a copy of the GNU General Public License
-along with doubly_stochastic_lif_inference.  If not, see
-<http://www.gnu.org/licenses/>.
+For technical questions please contact christian.research(at)mailbox.org.
