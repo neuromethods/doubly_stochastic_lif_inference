@@ -101,7 +101,7 @@ def transform_function(fx,x,x_new):
 
 @numba.njit
 def interpolate_x(xi, rangex):
-    """ Interpolates linearly???? TODO
+    """ Interpolates linearly.
 
     :param xi:
     :param rangex:
@@ -126,10 +126,10 @@ def interpolate_x(xi, rangex):
 @numba.njit
 def find_isi_idx(FPT_times, ISIs):
     """ Finds the bin indices, that are closest to the time discretized ISI
-    distribution.
+        density.
 
     :param FPT_times: np.array
-        Time discretization of ISI distribution.
+        Time discretization of ISI density.
     :param ISIs: np.array
         ISIs one needs the indices for.
     :return:  np.array
@@ -159,7 +159,9 @@ def gaussian_percentiles(p, mean, std):
 
 @numba.njit
 def EIF_steady_state_numba(V_vec, kr, taum, Vr, VT, DeltaT, mu, sigma):
-    """ Finds the steady state statistics of a stationary EIF neuron.
+    """ Computes the spike rate and membrane voltage density of a stochastic 
+        LIF/EIF neuron with constant mu, by solving the corresponding 
+        Fokker-Planck PDE for the steady state.
 
     :param V_vec: np.array
         Discretization of membrane potential.
@@ -178,7 +180,7 @@ def EIF_steady_state_numba(V_vec, kr, taum, Vr, VT, DeltaT, mu, sigma):
     :param sigma: float
         Standard deviation of white noise
     :return: list
-        Stationary statistics TODO
+        membrane voltage density, spike rate, probability flux
     """
     dV = V_vec[1]-V_vec[0]
     sig2term = 2.0/sigma**2
@@ -209,15 +211,15 @@ def EIF_steady_state_numba(V_vec, kr, taum, Vr, VT, DeltaT, mu, sigma):
     return p_ss, r_ss, q_ss
 
 def get_stationary_stats(mu, sigma):
-    """ Returns the mean firing rate and the mean membrane potential for a
-    white noise input with certain mean and standard deviation.
+    """ Returns the spike rate and the mean membrane voltage for a stochastic 
+        LIF/EIF neuron with constant mu.
 
     :param mu: float
         Mean of white noise.
     :param sigma: float
         Standard deviation
     :return: list
-        Mean firing rate and mean membrane potential.
+        Spike rate and mean membrane voltage.
     """
 
     tau_m, V_th, V_r, VT, V_lb, DeltaT, Tref, V_vec, kr = load_lif()
@@ -295,7 +297,7 @@ def get_valid_range(MU_BAR, C, sigma):
     return valid_mus, valid_zetas, valid_idx, rate_p01, rate_p99
 
 def _pre_calculate_likelihood(sigma, taum=None, gradient=False):
-    """ Calculates the ISI distribution for a certain sigma.
+    """ Calculates the ISI density for a certain sigma.
 
     :param sigma: float
         Standard deviation of white noise.
@@ -340,7 +342,7 @@ def _pre_calculate_likelihood(sigma, taum=None, gradient=False):
         return FPT_times, FPT_density, mu_range, sigma
 
 def _pre_calculate_Poisson_likelihood():
-    """ Calculates the ISI distribution for a Poisson process with rate
+    """ Calculates the ISI density for a Poisson process with rate
     lambda=exp(mu).
 
     :return: list
@@ -357,18 +359,17 @@ def _pre_calculate_Poisson_likelihood():
     return FPT_times, FPT_density, mu_range, 0
 
 def pre_calculate_likelihood(sigmas, taum=None, gradient=False, Poisson=False):
-    """ Function to precompute ISI distribution for different sigmas. Uses
+    """ Function to precompute ISI density for different sigmas. Uses
     parallel processing.
 
     :param sigmas: np.array
-        Sigma values for which the likelihood is computed.
+        Sigma values for which the ISI density is computed.
     :param taum: float
         Membrane time constant [ms].
     :param gradient: bool
         Whether numerical gradients should be computed. (Default=False)
     :param Poisson: bool
-        Whether Poisson process, instead of LIF likelihood should be
-        computed. (Default=True)
+        Whether Poisson process, instead of LIF should be considered. (Default=True)
     :return:
     """
     ### Note, that for Poisson all sigmas have to be zero.

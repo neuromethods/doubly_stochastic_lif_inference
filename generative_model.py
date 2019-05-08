@@ -5,7 +5,9 @@ from load_model_params import load_lif
 @numba.njit
 def simulate_EIF_numba(tgrid, V_init, taum, Vth, Vr, VT, DeltaT, Tref,
                        mu_vec, sigma_vec, rand_vec):
-    """ Simulates an exponential integrate and fire neuron.
+    """ Simulates an exponential or leaky integrate and fire (EIF/LIF) neuron
+        subject to Gaussian white noise input with (possibly time-varying) mean
+        and standard deviation (mu_vec, sigma_vec)
 
     :param tgrid: np.array
         Time discretization [ms].

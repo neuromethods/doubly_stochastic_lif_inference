@@ -6,7 +6,7 @@ import numpy as np
 
 def fit_model(Spk_times, dynamics, sigmas, T, get_posterior_process=False,
               sorting_error=0):
-    """ Main function that fits the doubly stochastic model to a given list of
+    """ Main function that fits the doubly-stochastic model to a given list of
     spike times.
 
     :param Spk_times: list
@@ -30,9 +30,9 @@ def fit_model(Spk_times, dynamics, sigmas, T, get_posterior_process=False,
     :return:
     """
     N = len(Spk_times)
-    # Precalculate the likelihood for an LIF (for parameters see
-    # load_model_params.py) for different sigmas
-    print('Precalculating the LIF likelihood. (This might take some minutes.)')
+    # Precalculate the ISI likelihood for a stochastic LIF with constant mu, sigma
+    # (for parameters see load_model_params.py) for different sigmas
+    print('Precalculating the ISI likelihood of a stochastic I&F neuron with constant mu.')
     FPT_times, FPT_density, mu_ranges = util_funcs.pre_calculate_likelihood(
         sigmas)
     # Prepares data and likelihood

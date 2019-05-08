@@ -1,6 +1,8 @@
-'''neccessary funcitons and classes to run the scharfetter gummel discretization
-of the fokker planck equation. Different modes are possible: feedforward, recurrent
-and also finite size effects are included'''
+'''necessary functions and classes to compute the ISI density of a stochastic I&F 
+neuron with constant parameters, by solving the first passage time problem: a 
+Fokker-Planck PDE. This PDE is solved using a finite volume method; for details
+see Ladenbauer et al. "Inferring and validating mechanistic models of neural 
+microcircuits based on spike-train data" '''
 
 from __future__ import print_function
 import numpy as np
@@ -210,7 +212,7 @@ def pISI_fvm_sg(mu, sigma, params, fpt=True, rt=list()):
     return results
 
 def get_params():
-    """ Gets all the necessary parameters for calculating the ISI distribution.
+    """ Gets all the necessary parameters for calculating the ISI density.
 
     :return: dict
         parameters necessary for the likelihood computation.

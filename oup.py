@@ -9,9 +9,9 @@ import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 def compute_mllk_at_point(model_variables, fixed_args):
-    """ Computes the likelihood of the LIF population model for a given set
-    of parameters under the assumption that the common input is an Ornstein
-    Uhlenbeck process (OUP).
+    """ Computes the likelihood of the doubly-stochastic LIF population model 
+    for a given set of parameters under the assumption that the common input is 
+    an Ornstein Uhlenbeck process (OUP).
 
     :param model_variables: list
         Contains model specific parameters. First entry
@@ -92,7 +92,7 @@ def parallel_simplex_mu_fit(neuron_idx, model_variables,
     return opt_res.x
 
 def simplex_C_all_fit_wrapper_mllk(C_all, model_variables, fixed_args):
-    """ Function for optimizing (homogeneous couplings) of a population
+    """ Function for optimizing (homogeneous couplings) of a population.
 
     :param C_all: float
         Value of homogeneous couplings.
